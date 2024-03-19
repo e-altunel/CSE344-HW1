@@ -29,11 +29,21 @@ int count_args(const char *str) {
 
 int count_arg_length(const char *str) {
   int count = 0;
-  while (*str && *str != ' ' && count < BUFFER_SIZE) {
-    count++;
-    str++;
+  if (*str == '\"') {
+    while (*str && *str != '\"' && count < BUFFER_SIZE) {
+      count++;
+      str++;
+    }
+    if (*str != '\"') return -1;
+    if (*(str + 1) != ' ' && *(str + 1) != '\0') return -1;
+    return count;
+  } else {
+    while (*str && *str != ' ' && count < BUFFER_SIZE) {
+      count++;
+      str++;
+    }
+    return count;
   }
-  return count;
 }
 
 void clear_stdin() {

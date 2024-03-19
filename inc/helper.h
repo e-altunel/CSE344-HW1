@@ -21,11 +21,13 @@ int count_args(const char *str);
  *
  * This function takes a string as input and counts the length of the first
  * argument in the string. An argument is defined as a sequence of
- * non-space/NULL characters.
+ * non-space/NULL characters or characters sequence between double-quotes. The
+ * function returns the length of the first argument in the string or -1 if
+ * there is an error.
  *
  * @param str The input string.
  * @return The length of the string. This value is always non-negative and maxes
- * out at BUFFER_SIZE.
+ * out at BUFFER_SIZE. If there is an error, the function returns -1
  */
 int count_arg_length(const char *str);
 
