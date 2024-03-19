@@ -6,12 +6,14 @@
 #include <unistd.h>
 
 void help_command() {
-  write(1, "Available commands:\n", 20);
-  write(1, "  - exit; to exit the program\n", 30);
-  write(1, "  - help; for this message\n", 27);
-  write(1, "  - gtuStudentGrades \"<filename>\"; to create a file\n", 52);
-  write(1, "  - addStudentGrade \"<student>\" \"<grade>\"; to add a student\n",
-        60);
+  (void)!write(1, "Available commands:\n", 20);
+  (void)!write(1, "  - exit; to exit the program\n", 30);
+  (void)!write(1, "  - help; for this message\n", 27);
+  (void)!write(1, "  - gtuStudentGrades \"<filename>\"; to create a file\n",
+               52);
+  (void)!write(
+      1, "  - addStudentGrade \"<student>\" \"<grade>\"; to add a student\n",
+      60);
 }
 
 /**
@@ -40,8 +42,9 @@ static char *get_from_apostrophes(const char *str) {
 
 int create_file_with_fork(char **filename, const char **args, int *isChild) {
   if (args[1] == NULL || args[2] != NULL) {
-    write(1, "Invalid arguments, expected: gtuStudentGrades \"<filename>\"\n",
-          60);
+    (void)!write(
+        1, "Invalid arguments, expected: gtuStudentGrades \"<filename>\"\n",
+        60);
     return -1;
   }
   if (*filename != NULL) free(*filename);
@@ -74,33 +77,34 @@ int create_file_with_fork(char **filename, const char **args, int *isChild) {
 int add_student_with_fork(const char *filename, const char **args,
                           int *isChild) {
   if (args[1] == NULL || args[2] == NULL || args[3] != NULL) {
-    write(1,
-          "Invalid arguments, expected: addStudentGrade \"<student>\" "
-          "\"<grade>\"\n",
-          68);
+    (void)!write(1,
+                 "Invalid arguments, expected: addStudentGrade \"<student>\" "
+                 "\"<grade>\"\n",
+                 68);
     return -1;
   }
   if (filename == NULL) {
-    write(1,
-          "No file created yet, use gtuStudentGrades \"<filename>\" to create "
-          "a file\n",
-          73);
+    (void)!write(
+        1,
+        "No file created yet, use gtuStudentGrades \"<filename>\" to create "
+        "a file\n",
+        73);
     return -1;
   }
   char *student_name = get_from_apostrophes(args[1]);
   if (student_name == NULL) {
-    write(1, "Invalid student name\n", 21);
+    (void)!write(1, "Invalid student name\n", 21);
     return -1;
   }
   char *grade = get_from_apostrophes(args[2]);
   if (grade == NULL) {
-    write(1, "Invalid grade\n", 14);
+    (void)!write(1, "Invalid grade\n", 14);
     free(student_name);
     return -1;
   }
   int pid = fork();
   if (pid == -1) {
-    write(1, "Fork failed\n", 12);
+    (void)!write(1, "Fork failed\n", 12);
     free(student_name);
     free(grade);
     return -1;
@@ -116,16 +120,16 @@ int add_student_with_fork(const char *filename, const char **args,
     *isChild = 1;
     int fd = open(filename, O_WRONLY | O_APPEND);
     if (fd == -1) {
-      write(1, filename, strlen(filename));
-      write(1, "File not found\n", 15);
+      (void)!write(1, filename, strlen(filename));
+      (void)!write(1, "File not found\n", 15);
       free(student_name);
       free(grade);
       return -1;
     }
-    write(fd, student_name, strlen(student_name));
-    write(fd, ", ", 2);
-    write(fd, grade, strlen(grade));
-    write(fd, "\n", 1);
+    (void)!write(fd, student_name, strlen(student_name));
+    (void)!write(fd, ", ", 2);
+    (void)!write(fd, grade, strlen(grade));
+    (void)!write(fd, "\n", 1);
     close(fd);
     free(student_name);
     free(grade);

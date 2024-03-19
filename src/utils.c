@@ -3,10 +3,11 @@
 #include <helper.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <utils.h>
 
 char *read_line_from_stdin() {
-  write(1, "Enter a line: ", 14);
+  (void)!write(1, "Enter a line: ", 14);
   fsync(1);
   char *buffer = (char *)malloc(BUFFER_SIZE + 1);
   if (buffer == NULL) {
@@ -16,29 +17,42 @@ char *read_line_from_stdin() {
   if (bytes_read == -1 || bytes_read == 0 || bytes_read == BUFFER_SIZE) {
     free(buffer);
     clear_stdin();
-    return NULL;
+    DEBUG_LOG(NULL, "Invalid input\n");
   } else {
     buffer[bytes_read] = '\0';
+    if (buffer[bytes_read - 1] == '\n') {
+      buffer[bytes_read - 1] = '\0';
+    }
     return buffer;
   }
 }
 
 char **get_args_from_line(const char *line) {
-  if (line == NULL) return NULL;
+  if (line == NULL) DEBUG_LOG(NULL, "Line is NULL\n");
   int count = count_args(line);
-  if (count == 0) return NULL;
+  if (count == 0 || count == -1) DEBUG_LOG(NULL, "Invalid count\n");
   char **args = (char **)malloc((count + 1) * sizeof(char *));
-  if (args == NULL) return NULL;
+  if (args == NULL) DEBUG_LOG(NULL, "Memory allocation failed\n");
   while (*line && *line == ' ') line++;
   for (int i = 0; i < count; i++) {
     int length = count_arg_length(line);
+    if (length == -1) {
+      for (int j = 0; j < i; j++) {
+        free(args[j]);
+      }
+      free(args);
+      DEBUG_LOG(NULL, "Invalid length\n");
+    }
+    if (*line == '\"') {
+      line++;
+    }
     args[i] = (char *)malloc(length + 1);
     if (args[i] == NULL) {
       for (int j = 0; j < i; j++) {
         free(args[j]);
       }
       free(args);
-      return NULL;
+      DEBUG_LOG(NULL, "Memory allocation failed\n");
     }
     strncpy(args[i], line, length);
     args[i][length] = '\0';

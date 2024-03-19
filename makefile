@@ -1,6 +1,6 @@
 CC = gcc
-CCFLAGS = -Wall -Wextra -Werror -pedantic
-NDEBUG = -DNDEBUG
+CCFLAGS = -Wall -Wextra -Werror -std=c99
+NDEBUG = -DNDEBUG -O2
 
 SRCDIR = src
 OBJDIR = build

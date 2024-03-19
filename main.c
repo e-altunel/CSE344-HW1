@@ -7,6 +7,27 @@
 #include <utils.h>
 
 int main() {
+  char *line = read_line_from_stdin();
+  if (line == NULL) {
+    (void)!write(1, "Invalid input\n", 14);
+    return 1;
+  }
+  (void)!write(1, line, strlen(line));
+  (void)!write(1, "\n", 1);
+  char **args = get_args_from_line(line);
+  free(line);
+  if (args == NULL) {
+    (void)!write(1, "Invalid args\n", 14);
+    return 1;
+  }
+  int i = 0;
+  while (args[i] != NULL) {
+    (void)!write(1, args[i], strlen(args[i]));
+    (void)!write(1, "\n", 1);
+    i++;
+  }
+  return 0;
+  /*
   int isFinished = 0;
   int returnVal = 0;
   int isChild = 0;
@@ -63,4 +84,5 @@ int main() {
   }
   if (filename != NULL) free(filename);
   return returnVal;
+  */
 }
