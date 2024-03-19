@@ -1,60 +1,107 @@
 CC = gcc
-CCFLAGS = -Wall -Wextra -Werror -std=c99
-NDEBUG = -DNDEBUG -O2
+RELEASE_FLAGS = -O2 -Wall -Wextra -Werror -std=c99 -pedantic -DNDEBUG
+DEBUG_FLAGS = -g3 -Wall -Wextra -Werror -std=c99 -pedantic
+TEST_FLAGS = $(DEBUG_FLAGS) 
+AR = ar
+ARFLAGS = rcs
+MEMCHECKFLAGS = --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 --trace-children=yes -q
+MEMCHECK = valgrind $(MEMCHECKFLAGS) 
 
 SRCDIR = src
-OBJDIR = build
-DEBUG_OBJSDIR = debug_build
+OBJDIR = obj
+DOBJDIR = debug
 INCDIR = inc
+LIBDIR = lib
+BINDIR = bin
+TESTDIR = test
+TESTOBJDIR = $(TESTDIR)/obj
+TESTINCDIR = $(TESTDIR)/inc
+TESTBINDIR = $(TESTDIR)/bin
 
-SRCS = $(wildcard $(SRCDIR)/*.c)
-OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
-DEBUG_OBJS = $(patsubst $(SRCDIR)/%.c, $(DEBUG_OBJSDIR)/%.o, $(SRCS))
-INCS = $(wildcard $(INCDIR)/*.h)
+SRC = $(wildcard $(SRCDIR)/*.c)
+OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
+DOBJ = $(patsubst $(SRCDIR)/%.c, $(DOBJDIR)/%.o, $(SRC))
+INC = $(wildcard $(INCDIR)/*.h)
+TESTSRC = $(wildcard $(TESTDIR)/*.c)
+TESTOBJ = $(patsubst $(TESTDIR)/%.c, $(TESTOBJDIR)/%.o, $(TESTSRC))
+TESTINC = $(wildcard $(TESTINCDIR)/*.h)
+TESTBIN = $(patsubst $(TESTDIR)/%.c, $(TESTBINDIR)/%.out, $(TESTSRC))
 
-NAME = main.out
+TARGET_NAME = cse344
+TARGET = lib$(TARGET_NAME).a
+DTARGET = lib$(TARGET_NAME)d.a
+NAME = main
+DNAME = maind
 
-all: run
+TARGET_PATH = $(LIBDIR)/$(TARGET)
+DTARGET_PATH = $(LIBDIR)/$(DTARGET)
+NAME_PATH = $(BINDIR)/$(NAME).out
+DNAME_PATH = $(BINDIR)/$(DNAME).out
 
-run: build
-	@echo "\n\nRunning $(NAME)\n\n"
-	@./$(NAME)
+all: $(TARGET_PATH) $(NAME_PATH)
 
-build: $(NAME)
+debug: $(DTARGET_PATH) $(DNAME_PATH)
 
-$(NAME): main.c $(OBJS) $(INCS)
-	$(CC) $(CCFLAGS) $(NDEBUG) -I$(INCDIR) -o $@ $^
+$(TARGET_PATH): $(OBJ)
+	@mkdir -p $(LIBDIR)
+	@echo "\033[1;33mCreating\033[0m $@"
+	@$(AR) $(ARFLAGS) $@ $^
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCS)
+$(NAME_PATH): $(TARGET_PATH) $(NAME).c
+	@mkdir -p $(BINDIR)
+	@echo "\033[1;33mLinking\033[0m $<"
+	@$(CC) $(RELEASE_FLAGS) -I$(INCDIR) -L$(LIBDIR) -o $@ $(NAME).c -l$(TARGET_NAME)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(INC)
 	@mkdir -p $(OBJDIR)
-	$(CC) $(CCFLAGS) $(NDEBUG) -I$(INCDIR) -c -o $@ $<
+	@echo "\033[1;33mCompiling\033[0m $<"
+	@$(CC) $(RELEASE_FLAGS) -I$(INCDIR) -c $< -o $@
 
-debug: debug_run
+$(DTARGET_PATH): $(DOBJ)
+	@mkdir -p $(LIBDIR)
+	@echo "\033[1;33mCreating\033[0m $@"
+	@$(AR) $(ARFLAGS) $@ $^
 
-debug_run: debug_build
-	@echo "\n\nRunning debug_$(NAME)\n\n"
-	@./debug_$(NAME)
+$(DNAME_PATH): $(DTARGET_PATH) $(NAME).c
+	@mkdir -p $(BINDIR)
+	@echo "\033[1;33mLinking\033[0m $<"
+	@$(CC) $(DEBUG_FLAGS) -I$(INCDIR) -L$(LIBDIR) -o $@ $(NAME).c -l$(TARGET_NAME)d
 
-debug_build: debug_$(NAME)
+$(DOBJDIR)/%.o: $(SRCDIR)/%.c $(INC)
+	@mkdir -p $(DOBJDIR)
+	@echo "\033[1;33mCompiling\033[0m $<"
+	@$(CC) $(DEBUG_FLAGS) -I$(INCDIR) -c $< -o $@
 
-debug_$(NAME): main.c $(DEBUG_OBJS) $(INCS)
-	$(CC) $(CCFLAGS) -I$(INCDIR) -o $@ $^
 
-$(DEBUG_OBJSDIR)/%.o: $(SRCDIR)/%.c $(INCS)
-	@mkdir -p $(DEBUG_OBJSDIR)
-	$(CC) $(CCFLAGS) -I$(INCDIR) -c -o $@ $<
+test: $(TESTBIN)
+	@echo "\033[1;32mRunning tests...\033[0m\n"
+	@for test in $(TESTBIN); do \
+		echo "\033[1;32mRunning\033[0m $$test"; \
+	  $(MEMCHECK) $$test; \
+		echo "\n"; \
+	done
+	
+$(TESTBINDIR)/%.out: $(TESTOBJDIR)/%.o $(TARGET_PATH) $(INC) $(TESTINC)
+	@mkdir -p $(TESTBINDIR)
+	@echo "\033[1;33mLinking\033[0m $<"
+	@$(CC) $(TEST_FLAGS) -I$(INCDIR) -I$(TESTINCDIR) -L$(LIBDIR) -o $@ $< -l$(TARGET_NAME)
 
+$(TESTOBJDIR)/%.o: $(TESTDIR)/%.c $(INC) $(TESTINC)
+	@mkdir -p $(TESTOBJDIR)
+	@echo "\033[1;33mCompiling\033[0m $<"
+	@$(CC) $(TEST_FLAGS) -I$(INCDIR) -I$(TESTINCDIR) -c $< -o $@
+
+test-file: $(TESTBINDIR)/$(TESTFILE).out
+	@echo "\033[1;32mRunning tests...\033[0m\n"
+	@echo "\033[1;32mRunning\033[0m $(TESTBINDIR)/$(TESTFILE).out"
+	@$(MEMCHECK) $(TESTBINDIR)/$(TESTFILE).out
+	
 
 clean:
-	rm -rf $(OBJDIR)
-	rm -rf $(DEBUG_OBJSDIR)
-	rm -f $(NAME)
-	rm -f debug_$(NAME)
-	rm -f *.zip
+	@echo "\033[1;31mCleaning...\033[0m"
+	@rm -rf $(OBJDIR) $(DOBJDIR) $(LIBDIR) $(BINDIR) $(TESTBINDIR) $(TESTOBJDIR)
 
 re: clean all
 
-zip:
-	zip -r EmirhanAltunel_200104004035_hw1.zip src inc makefile main.c
-
-.PHONY: all clean re zip run build debug debug_run debug_build
+.PHONY: all clean re debug test
+.PRECIOUS: $(OBJ) $(DOBJ) $(TESTOBJ)
