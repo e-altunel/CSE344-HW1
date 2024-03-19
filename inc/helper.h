@@ -6,11 +6,13 @@
  *
  * This function takes a string as input and counts the number of arguments in
  * the string. An argument is defined as a sequence of non-space/NULL
- * characters.
+ * characters or characters sequence between double-quotes. The function
+ * returns the number of arguments in the string or -1 if there is an error.
  *
  * @param str The input string.
  * @return The number of arguments in the string. This value is always
- * non-negative and maxes out at BUFFER_SIZE.
+ * non-negative and maxes out at BUFFER_SIZE. If there is an error, the function
+ * returns -1.
  */
 int count_args(const char *str);
 

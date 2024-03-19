@@ -6,10 +6,17 @@
 int count_args(const char *str) {
   int count = 0;
   int flag = 1;
+  int quote_flag = 0;
   while (*str && count < BUFFER_SIZE) {
-    if (*str == ' ') {
+    if (!quote_flag && *str == ' ') {
       flag = 1;
     } else {
+      if (!quote_flag && *str == '\"')
+        quote_flag = 1;
+      else if (quote_flag && *str == '\"') {
+        if (*(str + 1) != '\0' && *(str + 1) != ' ') return -1;
+        quote_flag = 0;
+      }
       if (flag) {
         count++;
         flag = 0;
