@@ -27,5 +27,5 @@ int main() {
       line, "\"Emirhan Altunel\";\"100\"",
       "addStudentGrade(\"test/addStudentGrade.txt\", \"Emirhan Altunel\", "
       "\"100\")");
-  // remove("test/append_to_file.txt");
+  remove("test/addStudentGrade.txt");
 }

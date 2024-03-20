@@ -96,7 +96,6 @@ test-file: $(TESTBINDIR)/$(TESTFILE).out
 	@echo "\033[1;32mRunning tests...\033[0m\n"
 	@echo "\033[1;32mRunning\033[0m $(TESTBINDIR)/$(TESTFILE).out"
 	@$(MEMCHECK) $(TESTBINDIR)/$(TESTFILE).out
-	
 
 clean:
 	@echo "\033[1;31mCleaning...\033[0m"

@@ -33,12 +33,12 @@ int main() {
   std::string line;
   std::getline(file, line);
   test<std::string>(
-      line, "\"Hello, World!\";\"Deneme\"",
+      line, "\"Hello, World!\"\"Deneme\"",
       "append_to_file(\"test/append_to_file.txt\", \"Hello, World!\", "
       "\"Deneme\")");
   std::getline(file, line);
   test<std::string>(
-      line, "\"Emirhan Altunel\";\"100\"",
+      line, "\"Emirhan Altunel\"\"100\"",
       "append_to_file(\"test/append_to_file.txt\", \"Emirhan Altunel\", "
       "\"100\")");
   remove("test/append_to_file.txt");

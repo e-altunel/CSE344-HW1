@@ -168,11 +168,45 @@ int append_to_file(const char *filename, const char *studentName,
   if (fd == -1) return -1;
   if (safe_write(fd, "\"", 1) == -1) return -1;
   if (safe_write(fd, studentName, strlen(studentName)) == -1) return -1;
-  if (safe_write(fd, "\";\"", 3) == -1) return -1;
+  if (safe_write(fd, "\"\"", 2) == -1) return -1;
   if (safe_write(fd, grade, strlen(grade)) == -1) return -1;
   if (safe_write(fd, "\"\n", 2) == -1) return -1;
   close(fd);
   return 0;
+}
+
+static void free_students(t_student *student) {
+  if (student == 0) return;
+  free_students(student->next);
+  if (student->name != 0) free(student->name);
+  if (student->grade != 0) free(student->grade);
+  free(student);
+}
+
+t_student *get_all_students(const char *filename) {
+  char *line = 0;
+  t_student *head = 0;
+  t_student *tail = 0;
+  int fd = open(filename, O_RDONLY);
+  if (fd == -1) return 0;
+  while ((line = get_next_line(fd)) != 0) {
+    t_student *student = extract_student(line);
+    if (student == 0) {
+      free_students(head);
+      close(fd);
+      return 0;
+    }
+    if (head == 0) {
+      head = student;
+      tail = student;
+    } else {
+      tail->next = student;
+      tail = student;
+    }
+    free(line);
+  }
+  close(fd);
+  return head;
 }
 
 char *strjoin(const char *str1, const char *str2) {
@@ -186,4 +220,35 @@ char *strjoin(const char *str1, const char *str2) {
   strcpy(result, str1);
   strcat(result, str2);
   return result;
+}
+
+static t_student *free_student(t_student *student) {
+  if (student == 0) return 0;
+  if (student->name != 0) free(student->name);
+  if (student->grade != 0) free(student->grade);
+  free(student);
+  return 0;
+}
+
+t_student *extract_student(const char *line) {
+  if (line == 0) return 0;
+  t_student *student = (t_student *)calloc(1, sizeof(t_student));
+  if (student == 0) return 0;
+  int length = strlen(line);
+  if (line[0] != '"') return free_student(student);
+  int index = 1;
+  while (line[index] != 0 && line[index] != '"') index++;
+  if (line[index] == 0) return free_student(student);
+  student->name = (char *)calloc(index, sizeof(char));
+  if (student->name == 0) return free_student(student);
+  strncpy(student->name, line + 1, index - 1);
+  if (line[index] != '"' || line[index + 1] != '"')
+    return free_student(student);
+  index += 2;
+  int grade_length = length - index - 1;
+  student->grade = (char *)calloc(grade_length + 1, sizeof(char));
+  if (student->grade == 0) return free_student(student);
+  strncpy(student->grade, line + index, grade_length);
+  if (line[length - 1] != '"') return free_student(student);
+  return student;
 }
