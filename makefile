@@ -1,7 +1,8 @@
 CC = gcc
+TESTCC = g++
 RELEASE_FLAGS = -O2 -Wall -Wextra -Werror -std=c99 -pedantic -DNDEBUG
 DEBUG_FLAGS = -g3 -Wall -Wextra -Werror -std=c99 -pedantic
-TEST_FLAGS = $(DEBUG_FLAGS) 
+TEST_FLAGS = -g3 -Wall -Wextra -Werror -std=c++11 -pedantic
 AR = ar
 ARFLAGS = rcs
 MEMCHECKFLAGS = --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 --trace-children=yes -q
@@ -22,10 +23,10 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
 DOBJ = $(patsubst $(SRCDIR)/%.c, $(DOBJDIR)/%.o, $(SRC))
 INC = $(wildcard $(INCDIR)/*.h)
-TESTSRC = $(wildcard $(TESTDIR)/*.c)
-TESTOBJ = $(patsubst $(TESTDIR)/%.c, $(TESTOBJDIR)/%.o, $(TESTSRC))
-TESTINC = $(wildcard $(TESTINCDIR)/*.h)
-TESTBIN = $(patsubst $(TESTDIR)/%.c, $(TESTBINDIR)/%.out, $(TESTSRC))
+TESTSRC = $(wildcard $(TESTDIR)/*.cpp)
+TESTOBJ = $(patsubst $(TESTDIR)/%.cpp, $(TESTOBJDIR)/%.o, $(TESTSRC))
+TESTINC = $(wildcard $(TESTINCDIR)/*.hpp)
+TESTBIN = $(patsubst $(TESTDIR)/%.cpp, $(TESTBINDIR)/%.out, $(TESTSRC))
 
 TARGET_NAME = cse344
 TARGET = lib$(TARGET_NAME).a
@@ -84,12 +85,12 @@ test: $(TESTBIN)
 $(TESTBINDIR)/%.out: $(TESTOBJDIR)/%.o $(TARGET_PATH) $(INC) $(TESTINC)
 	@mkdir -p $(TESTBINDIR)
 	@echo "\033[1;33mLinking\033[0m $<"
-	@$(CC) $(TEST_FLAGS) -I$(INCDIR) -I$(TESTINCDIR) -L$(LIBDIR) -o $@ $< -l$(TARGET_NAME)
+	@$(TESTCC) $(TEST_FLAGS) -I$(INCDIR) -I$(TESTINCDIR) -L$(LIBDIR) -o $@ $< -l$(TARGET_NAME)
 
-$(TESTOBJDIR)/%.o: $(TESTDIR)/%.c $(INC) $(TESTINC)
+$(TESTOBJDIR)/%.o: $(TESTDIR)/%.cpp $(INC) $(TESTINC)
 	@mkdir -p $(TESTOBJDIR)
 	@echo "\033[1;33mCompiling\033[0m $<"
-	@$(CC) $(TEST_FLAGS) -I$(INCDIR) -I$(TESTINCDIR) -c $< -o $@
+	@$(TESTCC) $(TEST_FLAGS) -I$(INCDIR) -I$(TESTINCDIR) -c $< -o $@
 
 test-file: $(TESTBINDIR)/$(TESTFILE).out
 	@echo "\033[1;32mRunning tests...\033[0m\n"
