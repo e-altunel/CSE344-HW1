@@ -8,12 +8,10 @@ extern "C" {
 
 int main() {
   create_file("test/create_file.txt");
-  if (access("test/create_file.txt", F_OK) == -1) {
-    std::cout << "Test 1 failed: create_file(\"test/create_file.txt\")"
-              << std::endl;
-  } else {
-    std::cout << "Test 1 passed: create_file(\"test/create_file.txt\")"
-              << std::endl;
-  }
+  if (access("test/create_file.txt", F_OK) == -1)
+    test_fail("create_file(\"test/create_file.txt\")");
+  else
+    test_pass("create_file(\"test/create_file.txt\")");
+
   remove("test/create_file.txt");
 }

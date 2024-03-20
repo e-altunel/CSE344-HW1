@@ -150,6 +150,31 @@ char *get_next_line(int fd) {
   return result;
 }
 
+static int safe_write(int fd, const char *str, int length) {
+  if (str == 0) return -1;
+  if (length == 0) return 0;
+  int written = write(fd, str, length);
+  if (written == -1) {
+    close(fd);
+    return -1;
+  }
+  return written;
+}
+
+int append_to_file(const char *filename, const char *studentName,
+                   const char *grade) {
+  if (filename == 0 || studentName == 0 || grade == 0) return -1;
+  int fd = open(filename, O_WRONLY | O_APPEND | O_CREAT, 0644);
+  if (fd == -1) return -1;
+  if (safe_write(fd, "\"", 1) == -1) return -1;
+  if (safe_write(fd, studentName, strlen(studentName)) == -1) return -1;
+  if (safe_write(fd, "\";\"", 3) == -1) return -1;
+  if (safe_write(fd, grade, strlen(grade)) == -1) return -1;
+  if (safe_write(fd, "\"\n", 2) == -1) return -1;
+  close(fd);
+  return 0;
+}
+
 char *strjoin(const char *str1, const char *str2) {
   if (str1 == 0 && str2 == 0) return 0;
   if (str1 == 0) return strdup(str2);

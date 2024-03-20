@@ -11,13 +11,24 @@
 
 static int test_count = 0;
 
+void test_fail(const char *message) {
+  test_count++;
+  std::cout << "\033[1;31mTest " << test_count << " failed\033[0m: " << message
+            << std::endl;
+}
+
+void test_pass(const char *message) {
+  test_count++;
+  std::cout << "\033[1;32mTest " << test_count << " passed\033[0m: " << message
+            << std::endl;
+}
+
 template <typename T>
 void test(T actual, T expected, const char *message) {
-  test_count++;
   if (actual == expected) {
-    std::cout << "Test " << test_count << " passed: " << message << std::endl;
+    test_pass(message);
   } else {
-    std::cout << "Test " << test_count << " failed: " << message << std::endl;
+    test_fail(message);
     std::cout << "  Expected: " << expected << std::endl;
     std::cout << "  Actual: " << actual << std::endl;
   }
@@ -34,20 +45,20 @@ void test(char **actual, std::vector<std::string> expected,
   test_count++;
   for (std::size_t i = 0; i < expected.size(); i++) {
     if (actual[i] != expected[i]) {
-      std::cout << "Test " << test_count << " failed: " << message << std::endl;
+      test_fail(message);
       std::cout << "  Expected: " << expected[i] << std::endl;
       std::cout << "  Actual: " << actual[i] << std::endl;
       return;
     }
   }
   if (actual[expected.size()] != nullptr) {
-    std::cout << "Test " << test_count << " failed: " << message << std::endl;
+    test_fail(message);
     std::cout << "  Expected: "
               << "nullptr" << std::endl;
     std::cout << "  Actual: " << actual[expected.size()] << std::endl;
     return;
   }
-  std::cout << "Test " << test_count << " passed: " << message << std::endl;
+  test_pass(message);
 }
 
 #endif /* TEST_INC_TESTER */
