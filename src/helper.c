@@ -1,5 +1,8 @@
+#include <fcntl.h>
+#include <helper.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static int isWhitespace(char c) {
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
@@ -98,4 +101,64 @@ char **get_arguments(const char *str) {
     arg_index++;
   }
   return args;
+}
+
+int create_file(const char *filename) {
+  int fd = open(filename, O_CREAT | O_WRONLY, 0644);
+  if (fd == -1) return -1;
+  close(fd);
+  return 0;
+}
+
+static int hasLineBreak(const char *str) {
+  if (str == 0) return 0;
+  for (int i = 0; str[i] != 0; i++) {
+    if (str[i] == '\n') return 1;
+  }
+  return 0;
+}
+
+static char *strdup(const char *str) {
+  if (str == 0) return 0;
+  int length = strlen(str);
+  char *result = (char *)calloc(length + 1, sizeof(char));
+  if (result == 0) return 0;
+  strcpy(result, str);
+  return result;
+}
+
+char *get_next_line(int fd) {
+  if (fd < 0) return 0;
+  char buffer[BUFFER_SIZE + 1];
+  char *result = 0;
+  char *temp_result = 0;
+  int cursor = lseek(fd, 0, SEEK_CUR);
+  while (!hasLineBreak(result)) {
+    int read_length = read(fd, buffer, BUFFER_SIZE);
+    if (read_length == -1) {
+      if (result != 0) free(result);
+      return 0;
+    }
+    buffer[read_length] = 0;
+    if (read_length == 0) return result;
+    temp_result = strjoin(result, buffer);
+    if (result != 0) free(result);
+    result = temp_result;
+  }
+  strchr(result, '\n')[0] = 0;
+  lseek(fd, cursor + strlen(result) + 1, SEEK_SET);
+  return result;
+}
+
+char *strjoin(const char *str1, const char *str2) {
+  if (str1 == 0 && str2 == 0) return 0;
+  if (str1 == 0) return strdup(str2);
+  if (str2 == 0) return strdup(str1);
+  int length1 = strlen(str1);
+  int length2 = strlen(str2);
+  char *result = (char *)calloc(length1 + length2 + 1, sizeof(char));
+  if (result == 0) return 0;
+  strcpy(result, str1);
+  strcat(result, str2);
+  return result;
 }

@@ -23,6 +23,12 @@ void test(T actual, T expected, const char *message) {
   }
 }
 
+template <>
+void test<const char *>(const char *actual, const char *expected,
+                        const char *message) {
+  test(std::string(actual), std::string(expected), message);
+}
+
 void test(char **actual, std::vector<std::string> expected,
           const char *message) {
   test_count++;
